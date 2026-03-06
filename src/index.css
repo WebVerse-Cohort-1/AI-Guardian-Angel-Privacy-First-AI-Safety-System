@@ -222,12 +222,14 @@ input:focus, select:focus, textarea:focus {
   max-width: 480px;
   margin: 0 auto;
   background-color: var(--bg-primary);
-  min-height: 100vh;
+  height: 100vh; /* Fixed height to prevent downward spill */
+  width: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
   box-shadow: 0 0 50px var(--shadow-color);
   transition: background-color 0.3s ease;
+  overflow: hidden; /* Lock the outer frame */
 }
 
 /* Header */
@@ -380,8 +382,13 @@ input:focus, select:focus, textarea:focus {
 
 /* Overlays */
 .overlay {
-  position: absolute;
-  inset: 0;
+  position: fixed; /* Grounded to the actual viewport */
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
   background: var(--overlay-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
