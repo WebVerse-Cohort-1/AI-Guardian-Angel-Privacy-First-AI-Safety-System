@@ -13,7 +13,9 @@ const EmergencyActive = () => {
       }}>
          <div className="card glass-panel animate-slide-up" style={{ 
             maxWidth: '100%', 
-            width: '100%', 
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             padding: '2rem 1.5rem', 
             textAlign: 'center', 
             boxShadow: '0 20px 50px rgba(0,0,0,0.5)', 
@@ -35,7 +37,7 @@ const EmergencyActive = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--risk-emergency)' }}>
                      <MessageSquare size={16} /> <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Alert Message Sent</span>
                   </div>
-                  <p style={{ fontSize: '0.875rem', fontStyle: 'italic', fontWeight: 500, color: '#ffb3b3' }}>
+                  <p style={{ fontSize: '0.875rem', fontStyle: 'italic', fontWeight: 500, color: '#ffb3b3', maxHeight: '150px', overflowY: 'auto' }}>
                      "{activeScenario.customMessage}"
                   </p>
                </div>
