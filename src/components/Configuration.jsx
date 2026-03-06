@@ -96,11 +96,11 @@ const Configuration = ({ showGlobalsOnly = false }) => {
               </button>
            </div>
 
-           <div className="status-list">
+            <div className="status-list">
              {triggerPhrases.map((phrase, idx) => (
-               <div key={idx} className="status-item" style={{ justifyContent: 'space-between', padding: '0.5rem 1rem' }}>
-                 <span>"{phrase}"</span>
-                 <button onClick={() => removeTriggerPhrase(phrase)} style={{ background: 'none', color: 'var(--risk-emergency)' }}>
+               <div key={idx} className="status-item" style={{ justifyContent: 'space-between', padding: '0.65rem 1rem', background: 'var(--bg-secondary)' }}>
+                 <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>"{phrase}"</span>
+                 <button onClick={() => removeTriggerPhrase(phrase)} style={{ background: 'none', color: 'var(--risk-emergency)', padding: '4px' }}>
                    <Trash2 size={16} />
                  </button>
                </div>

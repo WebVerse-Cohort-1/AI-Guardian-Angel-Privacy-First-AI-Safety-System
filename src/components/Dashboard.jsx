@@ -107,7 +107,8 @@ const Dashboard = () => {
                 border: '1px solid rgba(255,255,255,0.1)', 
                 fontWeight: 'normal',
                 fontSize: '0.8rem',
-                padding: '8px 12px'
+                padding: '8px 12px',
+                color: 'var(--text-primary)'
               }}
               onClick={() => simulateSpeechDetection(phrase)}
               disabled={alertStatus !== 'inactive'}
