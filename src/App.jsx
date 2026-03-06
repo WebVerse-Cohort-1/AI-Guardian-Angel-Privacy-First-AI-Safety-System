@@ -52,6 +52,7 @@ function App() {
              <Configuration showGlobalsOnly />
            </div>
         )}
+        <div style={{ height: '150px', flexShrink: 0 }} /> {/* Spacer to prevent content hiding behind bottom nav */}
       </main>
 
       {/* Bottom Navigation */}

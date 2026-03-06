@@ -145,17 +145,17 @@ const Configuration = ({ showGlobalsOnly = false }) => {
        {/* Emergency Scenarios */}
        {!showGlobalsOnly && (
          <>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '70px', zIndex: 10, background: 'var(--bg-primary)', padding: '1rem 0', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '0', zIndex: 10, background: 'var(--bg-primary)', padding: '0.5rem 0 1rem 0', WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
              <div style={{ display: 'flex', flexDirection: 'column' }}>
                <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Active Scenarios</h2>
-               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configure specific trigger reactions</span>
+               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configure specific reactions</span>
              </div>
-             <button onClick={addScenario} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '8px 16px', borderRadius: 'var(--radius-full)' }}>
-               <PlusCircle size={18} /> Add
+             <button onClick={addScenario} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '6px 12px', fontSize: '0.875rem' }}>
+               <PlusCircle size={16} /> Add
              </button>
            </div>
            
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '0.5rem' }}>
              {scenarios.map((scenario) => (
                <div key={scenario.id} className="card glass-panel" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
                  <div className="card-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
