@@ -403,6 +403,25 @@ input:focus, select:focus, textarea:focus {
   text-align: center;
   box-shadow: 0 -20px 40px var(--shadow-color);
   animation: slideUpBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 2rem;
+}
+
+.modal-content-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-content-scroll::-webkit-scrollbar-thumb {
+  background: var(--glass-pill);
+  border-radius: 4px;
 }
 
 @keyframes slideUpBottom {
@@ -435,7 +454,9 @@ input:focus, select:focus, textarea:focus {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: auto; /* Push to bottom of flex container */
+  padding-top: 1rem;
+  border-top: 1px solid var(--glass-border);
 }
 
 /* Map Grid Simulation */

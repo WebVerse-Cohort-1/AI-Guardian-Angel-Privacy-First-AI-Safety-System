@@ -20,34 +20,41 @@ const LockScreenAlert = () => {
           Potential Distress Signal Detected
         </div>
         
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
-          Did you intend to trigger an emergency alert?
-        </h2>
-        
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          Trigger phrase detected: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>"{detectedPhrase}"</span>
-        </p>
-        
-        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Confirm within the selected time window or the emergency protocol will automatically activate.
-        </div>
-
-        <div className="countdown-circle animate-pulse">
-          {confirmationCountdown}s
-        </div>
-
-        {activeScenario && (
-          <div style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'left', marginTop: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-             <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions upon timeout:</h3>
-             <ul style={{ fontSize: '0.875rem', paddingLeft: '1.5rem', color: 'var(--text-primary)' }}>
-                {activeScenario.notifyContacts?.length > 0 && (
-                   <li>Notify: {activeScenario.notifyContacts.join(', ')}</li>
-                )}
-                {activeScenario.sendLocation && <li>Share Live GPS Location</li>}
-                {activeScenario.notifyPolice && <li>Notify Authorities / Police</li>}
-             </ul>
+        <div className="modal-content-scroll">
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
+            Did you intend to trigger an emergency alert?
+          </h2>
+          
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+            Trigger phrase detected: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>"{detectedPhrase}"</span>
+          </p>
+          
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+            Confirm within the selected time window or the emergency protocol will automatically activate.
           </div>
-        )}
+
+          <div className="countdown-circle animate-pulse">
+            {confirmationCountdown}s
+          </div>
+
+          {activeScenario && (
+            <div style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'left', marginTop: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+               <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions upon timeout:</h3>
+               <ul style={{ fontSize: '0.875rem', paddingLeft: '1.5rem', color: 'var(--text-primary)' }}>
+                  {activeScenario.notifyContacts?.length > 0 && (
+                     <li>Notify: {activeScenario.notifyContacts.join(', ')}</li>
+                  )}
+                  {activeScenario.sendLocation && <li>Share Live GPS Location</li>}
+                  {activeScenario.notifyPolice && <li>Notify Authorities / Police</li>}
+                  {activeScenario.customMessage && (
+                    <li style={{ marginTop: '0.5rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+                      " {activeScenario.customMessage.substring(0, 50)}... "
+                    </li>
+                  )}
+               </ul>
+            </div>
+          )}
+        </div>
 
         <div className="modal-actions">
            <button className="btn-outline" style={{ height: '50px' }} onClick={cancelAlert}>
