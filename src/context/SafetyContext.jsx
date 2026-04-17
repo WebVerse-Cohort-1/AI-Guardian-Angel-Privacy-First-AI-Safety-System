@@ -11,6 +11,8 @@ export const SafetyProvider = ({ children }) => {
   const [confirmationCountdown, setConfirmationCountdown] = useState(0);
   const [detectedPhrase, setDetectedPhrase] = useState('');
   const [activeScenario, setActiveScenario] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
 
   // Default Scenarios
   const [scenarios, setScenarios] = useState([
@@ -22,6 +24,8 @@ export const SafetyProvider = ({ children }) => {
       notifyContacts: ['Mom', 'Best Friend'],
       sendLocation: true,
       notifyPolice: true,
+      recordVideo: true,
+      recordAudio: true,
       customMessage: 'Help me, I am in an emergency situation.',
     },
     {
@@ -32,6 +36,8 @@ export const SafetyProvider = ({ children }) => {
       notifyContacts: ['Roommate'],
       sendLocation: true,
       notifyPolice: false,
+      recordVideo: false,
+      recordAudio: true,
       customMessage: 'Hey, I am not feeling comfortable. Please check my location.',
     }
   ]);
@@ -69,7 +75,7 @@ export const SafetyProvider = ({ children }) => {
   // Handle Risk Score Auto-Trigger
   useEffect(() => {
     if (riskScore >= 70 && alertStatus === 'inactive') {
-      triggerEmergencyProtocol('Auto-Detected High Risk Situation');
+      triggerEmergencyProtocol('High Risk Context Detected');
     }
   }, [riskScore, alertStatus]);
 
@@ -85,6 +91,81 @@ export const SafetyProvider = ({ children }) => {
     }
     return () => clearInterval(interval);
   }, [alertStatus, confirmationCountdown]);
+
+  // Text to Speech Utility
+  const speak = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop any current speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Real Voice Recognition Effect
+  useEffect(() => {
+    let recognition = null;
+
+    if (voiceActive && isMonitoring && alertStatus === 'inactive') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          setIsListening(true);
+          console.log('Voice recognition started...');
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+          console.log('Recognized:', transcript);
+          
+          // Check if transcript contains any of our trigger phrases
+          const matchedPhrase = triggerPhrases.find(p => transcript.includes(p.toLowerCase()));
+          
+          if (matchedPhrase) {
+            simulateSpeechDetection(matchedPhrase);
+            speak(`Starting safety protocol.`);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          // Restart if still active
+          if (voiceActive && isMonitoring && alertStatus === 'inactive') {
+            try { recognition.start(); } catch (e) { console.error(e); }
+          }
+        };
+
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error('Recognition start error:', error);
+        }
+      } else {
+        console.warn('Speech Recognition not supported in this browser.');
+      }
+    } else {
+      setIsListening(false);
+    }
+
+    return () => {
+      if (recognition) {
+        recognition.stop();
+      }
+    };
+  }, [voiceActive, isMonitoring, alertStatus, triggerPhrases]);
 
   const simulateEvent = (scoreIncrease) => {
     setRiskScore((prev) => {
@@ -107,6 +188,12 @@ export const SafetyProvider = ({ children }) => {
     const windowTime = matchedScenario?.confirmationWindow || confirmationSettings;
     setConfirmationCountdown(windowTime);
     setAlertStatus('confirming');
+    setRiskScore(70); // Force red status UI during confirmation
+    
+    // Voice feedback for detection
+    if (phrase !== detectedPhrase) {
+      speak(`Alert! "${phrase}" trigger detected. You have ${windowTime} seconds to cancel before emergency contacts are notified.`);
+    }
   };
 
   const cancelAlert = () => {
@@ -115,6 +202,7 @@ export const SafetyProvider = ({ children }) => {
     setDetectedPhrase('');
     setActiveScenario(null);
     setRiskScore(15);
+    speak("Emergency alert has been cancelled. System is now back in monitoring mode.");
   };
 
   const confirmEmergency = () => {
@@ -124,12 +212,16 @@ export const SafetyProvider = ({ children }) => {
   const triggerEmergencyProtocol = (reason) => {
     setDetectedPhrase(reason);
     setActiveScenario(scenarios[0]);
-    activateEmergencyProtocol();
+    setConfirmationCountdown(confirmationSettings);
+    setAlertStatus('confirming');
+    setRiskScore(70);
+    speak(`Security alert! ${reason}. Safety protocol starting in ${confirmationSettings} seconds.`);
   };
 
   const activateEmergencyProtocol = () => {
     setAlertStatus('active');
     setConfirmationCountdown(0);
+    speak("Emergency protocol activated. Sending location to your contacts and notifying authorities.");
     
     if (activeScenario || scenarios[0]) {
       const scenarioToUse = activeScenario || scenarios[0];
@@ -161,6 +253,8 @@ export const SafetyProvider = ({ children }) => {
       notifyContacts: [],
       sendLocation: true,
       notifyPolice: false,
+      recordVideo: false,
+      recordAudio: false,
       customMessage: 'Emergency alert! Please check my location.',
     }, ...scenarios]);
   };
@@ -209,7 +303,11 @@ export const SafetyProvider = ({ children }) => {
     simulateSpeechDetection,
     cancelAlert,
     confirmEmergency,
-    resetSystem
+    resetSystem,
+    isListening,
+    voiceActive,
+    setVoiceActive,
+    speak
   };
 
   return (

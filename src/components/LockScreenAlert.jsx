@@ -26,7 +26,7 @@ const LockScreenAlert = () => {
           </h2>
           
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-            Trigger phrase detected: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>"{detectedPhrase}"</span>
+            Alert trigger: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{detectedPhrase.includes('Risk') ? detectedPhrase : `"${detectedPhrase}"`}</span>
           </p>
           
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>

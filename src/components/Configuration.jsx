@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSafety } from '../context/SafetyContext';
-import { PlusCircle, Trash2, Mic, Phone } from 'lucide-react';
+import { PlusCircle, Trash2, Mic, Phone, Camera } from 'lucide-react';
 
 const Configuration = ({ showGlobalsOnly = false }) => {
    const {
@@ -15,7 +15,11 @@ const Configuration = ({ showGlobalsOnly = false }) => {
      confirmationSettings,
      setConfirmationSettings,
      addScenario,
-     removeScenario
+     removeScenario,
+     voiceActive,
+     setVoiceActive,
+     isListening,
+     speak
    } = useSafety();
 
    const [newPhrase, setNewPhrase] = useState('');
@@ -58,15 +62,37 @@ const Configuration = ({ showGlobalsOnly = false }) => {
              </p>
            </div>
 
-           <div className="form-group" style={{ marginTop: '1.5rem' }}>
-              <label>Privacy Setting: Trigger History Storage</label>
-              <select disabled value="0">
-                 <option value="0">Never Store (Privacy First)</option>
-              </select>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-               Audio is never recorded or transmitted. On-device processing only.
-             </p>
-           </div>
+            <div className="form-group" style={{ marginTop: '1.5rem' }}>
+               <label>Privacy Setting: Trigger History Storage</label>
+               <select disabled value="0">
+                  <option value="0">Never Store (Privacy First)</option>
+               </select>
+               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                Audio is never recorded or transmitted. On-device processing only.
+              </p>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1.5rem', background: 'var(--accent-blue-transparent)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent-blue-transparent)' }}>
+               <label className="checkbox-wrap">
+                  <input 
+                    type="checkbox" 
+                    checked={voiceActive} 
+                    onChange={(e) => setVoiceActive(e.target.checked)} 
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--accent-blue)' }}>Enable Real-Time Voice Assistant</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Listen for trigger phrases in real-time. (Requires Mic Permission)
+                    </span>
+                  </div>
+               </label>
+               {isListening && (
+                 <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-safe)', fontSize: '0.75rem', fontWeight: 600 }}>
+                   <div className="pulse" style={{ width: 8, height: 8, background: 'var(--risk-safe)', borderRadius: '50%' }}></div>
+                   Actively Listening...
+                 </div>
+               )}
+            </div>
          </div>
 
          {/* General Trigger Phrases Manager */}
@@ -95,6 +121,14 @@ const Configuration = ({ showGlobalsOnly = false }) => {
                 Add
               </button>
            </div>
+
+            <button 
+              className="btn-outline" 
+              style={{ width: '100%', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              onClick={() => speak("Voice Assistant is active and ready to help. I will speak to confirm triggers and alerts.")}
+            >
+              <Mic size={16} /> Test Voice Feedback
+            </button>
 
             <div className="status-list">
              {triggerPhrases.map((phrase, idx) => (
@@ -238,6 +272,28 @@ const Configuration = ({ showGlobalsOnly = false }) => {
                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Continuously update real-time location.</span>
                        </div>
                      </label>
+
+                     <label className="checkbox-wrap" style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                        <input type="checkbox" checked={scenario.recordVideo} onChange={(e) => handleScenarioChange(scenario.id, 'recordVideo', e.target.checked)} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Camera size={14} style={{ color: 'var(--accent-blue)' }} />
+                            <span style={{ fontWeight: 500 }}>Record Video</span>
+                          </div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Capture front camera footage.</span>
+                        </div>
+                      </label>
+
+                      <label className="checkbox-wrap" style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                        <input type="checkbox" checked={scenario.recordAudio} onChange={(e) => handleScenarioChange(scenario.id, 'recordAudio', e.target.checked)} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Mic size={14} style={{ color: 'var(--accent-blue)' }} />
+                            <span style={{ fontWeight: 500 }}>Record Audio</span>
+                          </div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Capture ambient audio evidence.</span>
+                        </div>
+                      </label>
                      
                      <label className="checkbox-wrap" style={{ background: 'var(--risk-emergency-transparent)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                        <input type="checkbox" checked={scenario.notifyPolice} onChange={(e) => handleScenarioChange(scenario.id, 'notifyPolice', e.target.checked)} />

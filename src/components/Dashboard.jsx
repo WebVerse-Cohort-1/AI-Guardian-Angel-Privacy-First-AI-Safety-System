@@ -3,7 +3,15 @@ import { useSafety } from '../context/SafetyContext';
 import { ShieldCheck, ShieldAlert, Fingerprint, MapPin, Activity, Phone } from 'lucide-react';
 
 const Dashboard = () => {
-  const { riskScore, alertStatus, simulateEvent, simulateSpeechDetection, triggerPhrases } = useSafety();
+  const { 
+    riskScore, 
+    alertStatus, 
+    confirmationCountdown,
+    resetSystem,
+    simulateEvent, 
+    simulateSpeechDetection, 
+    triggerPhrases 
+  } = useSafety();
 
   const getRiskStatus = () => {
     if (riskScore >= 70) return { label: 'EMERGENCY', color: 'var(--risk-emergency)' };
@@ -39,10 +47,14 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="animate-fade-in" style={{ position: 'relative', zIndex: 1 }}>
-            <h2 className="card-header" style={{ justifyContent: 'center' }}>Contextual Risk Score</h2>
-            <div className="score-circle" style={{ borderColor: status.color, boxShadow: `0 0 30px ${status.color}33`, marginTop: '1rem' }}>
-              <span className="score-value" style={{ color: status.color }}>{Math.floor(riskScore)}</span>
-              <span className="score-label">/ 100</span>
+            <h2 className="card-header" style={{ justifyContent: 'center' }}>
+              {alertStatus === 'confirming' ? 'System Countdown' : 'Contextual Risk Score'}
+            </h2>
+            <div className={`score-circle ${alertStatus === 'confirming' ? 'animate-pulse' : ''}`} style={{ borderColor: status.color, boxShadow: `0 0 30px ${status.color}33`, marginTop: '1rem' }}>
+              <span className="score-value" style={{ color: status.color }}>
+                {alertStatus === 'confirming' ? confirmationCountdown : Math.floor(riskScore)}
+              </span>
+              <span className="score-label">{alertStatus === 'confirming' ? 'SECONDS' : '/ 100'}</span>
             </div>
             <div className="status-badge glass-pill pulse" style={{ color: status.color, border: `1px solid ${status.color}55`, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', margin: '1.5rem auto 0 auto' }}>
               <Activity size={16} /> {status.label}
@@ -85,10 +97,10 @@ const Dashboard = () => {
           Simulates background context gathering (accelerometer, time, GPS).
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <button className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem' }} onClick={() => simulateEvent(10)}>Night (+10)</button>
-          <button className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem' }} onClick={() => simulateEvent(20)}>Unsafe Loc (+20)</button>
-          <button className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem', borderColor: 'var(--risk-suspicious)', color: 'var(--risk-suspicious)' }} onClick={() => simulateEvent(30)}>Movement (+30)</button>
-          <button className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem', borderColor: 'var(--risk-emergency)', color: 'var(--risk-emergency)' }} onClick={() => simulateEvent(40)}>Scream (+40)</button>
+          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem' }} onClick={() => simulateEvent(10)}>Night (+10)</button>
+          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem' }} onClick={() => simulateEvent(20)}>Unsafe Loc (+20)</button>
+          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem', borderColor: 'var(--risk-suspicious)', color: 'var(--risk-suspicious)' }} onClick={() => simulateEvent(30)}>Movement (+30)</button>
+          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem', borderColor: 'var(--risk-emergency)', color: 'var(--risk-emergency)' }} onClick={() => simulateEvent(40)}>Scream (+40)</button>
         </div>
 
         <div className="card-header" style={{ marginBottom: '0.5rem' }}>
@@ -117,6 +129,16 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
+
+        {alertStatus !== 'inactive' && (
+          <button 
+            className="btn-outline" 
+            style={{ width: '100%', marginTop: '1.5rem', borderColor: 'var(--risk-emergency)', color: 'var(--risk-emergency)', fontWeight: 'bold' }}
+            onClick={resetSystem}
+          >
+            Emergency Reset / Stop Simulation
+          </button>
+        )}
       </div>
 
       {/* Emergency Contacts Panel */}

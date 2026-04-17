@@ -7,7 +7,7 @@ import EmergencyActive from './components/EmergencyActive';
 import { Shield, Settings, AlertTriangle, Home, Mic, Sun, Moon } from 'lucide-react';
 
 function App() {
-  const { alertStatus } = useSafety();
+    const { alertStatus, isListening, voiceActive, setVoiceActive } = useSafety();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState('dark');
 
@@ -26,18 +26,35 @@ function App() {
       <header className="app-header">
         <div className="app-title">
           <Shield style={{ color: 'var(--accent-blue)' }} size={28} />
-          <span>Guardian Angel</span>
+          <span>Ai Guardian Angel</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button onClick={toggleTheme} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
             {theme === 'dark' ? <Sun size={22} /> : <Moon size={22} />}
           </button>
-          <div 
-            className={`status-icon ${alertStatus === 'active' ? 'danger' : 'success'}`}
-            style={{ width: 40, height: 40 }}
+          <button 
+            onClick={() => setVoiceActive(!voiceActive)}
+            className={`status-icon ${alertStatus === 'active' ? 'danger' : (voiceActive ? 'success' : '')}`}
+            style={{ 
+              width: 40, 
+              height: 40, 
+              background: voiceActive ? 'var(--risk-safe-transparent)' : 'var(--glass-pill)',
+              border: voiceActive ? '1px solid var(--risk-safe)' : '1px solid var(--glass-border)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: alertStatus === 'active' ? 'var(--risk-emergency)' : (voiceActive ? 'var(--risk-safe)' : 'var(--text-muted)')
+            }}
           >
-             <Mic size={18} style={{ animation: alertStatus === 'active' ? 'pulse 1s infinite' : 'none' }} />
-          </div>
+             <Mic 
+               size={20} 
+               style={{ 
+                 animation: (isListening || alertStatus === 'active') ? 'pulse 1.5s infinite' : 'none',
+               }} 
+             />
+          </button>
         </div>
       </header>
 

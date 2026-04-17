@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafety } from '../context/SafetyContext';
-import { MessageSquare, Phone, MapPin, ShieldAlert } from 'lucide-react';
+import { MessageSquare, Phone, MapPin, ShieldAlert, Camera, Mic } from 'lucide-react';
 
 const EmergencyActive = () => {
    const { activeScenario, contacts, resetSystem } = useSafety();
@@ -70,6 +70,26 @@ const EmergencyActive = () => {
                      <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: 500, fontSize: '0.875rem', color: 'var(--risk-emergency)' }}>Authorities Notified</span>
                         <span style={{ fontSize: '0.7rem', color: 'rgba(239, 68, 68, 0.8)' }}>Direct dispatch alerted.</span>
+                     </div>
+                  </div>
+               )}
+
+               {activeScenario?.recordVideo && (
+                  <div className="status-item animate-slide-up" style={{ animationDelay: '0.9s', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                     <div className="status-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'rgb(139, 92, 246)' }}><Camera size={14} /></div>
+                     <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 500, fontSize: '0.875rem', color: 'rgb(139, 92, 246)' }}>Video Recording Active</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Capturing front camera footage.</span>
+                     </div>
+                  </div>
+               )}
+
+               {activeScenario?.recordAudio && (
+                  <div className="status-item animate-slide-up" style={{ animationDelay: '1.1s', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                     <div className="status-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'rgb(139, 92, 246)' }}><Mic size={14} /></div>
+                     <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 500, fontSize: '0.875rem', color: 'rgb(139, 92, 246)' }}>Audio Recording Active</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Capturing ambient audio evidence.</span>
                      </div>
                   </div>
                )}
