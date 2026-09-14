@@ -1,193 +1,263 @@
 import React from 'react';
 import { useSafety } from '../context/SafetyContext';
-import { ShieldCheck, ShieldAlert, Fingerprint, MapPin, Activity, Phone } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Fingerprint, MapPin, Activity, Phone, Zap, RefreshCw } from 'lucide-react';
 
+/* ── Helpers ─────────────────────────────────────────── */
+const getStatus = (score) => {
+  if (score >= 70) return { key: 'danger', label: 'EMERGENCY',  title: 'Alert',      color: 'var(--danger)', stroke: '#EF4444' };
+  if (score >= 40) return { key: 'warn',   label: 'SUSPICIOUS', title: 'Caution',    color: 'var(--warn)',   stroke: '#F59E0B' };
+  return               { key: 'safe',   label: 'PROTECTED',  title: 'Protected',  color: 'var(--safe)',   stroke: '#10B981' };
+};
+
+/* ── Score Ring ──────────────────────────────────────── */
+const ScoreRing = ({ score, status }) => {
+  const r = 56, circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  return (
+    <div className="score-wrap">
+      <svg className="score-ring-svg" viewBox="0 0 140 140">
+        <circle className="score-ring-track" cx="70" cy="70" r={r} strokeWidth="8" />
+        <circle
+          className="score-ring-fill"
+          cx="70" cy="70" r={r}
+          strokeWidth="8"
+          stroke={status.stroke}
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <div className="score-inner">
+        <span className="score-value" style={{ color: status.color }}>{Math.floor(score)}</span>
+        <span className="score-label">/ 100</span>
+      </div>
+    </div>
+  );
+};
+
+/* ── Guardian Ring ───────────────────────────────────── */
+const GuardianRing = ({ statusKey }) => (
+  <div className="guardian-ring-wrap">
+    <div className="guardian-ring-outer" />
+    <div className="guardian-ring-mid" />
+    <div className={`guardian-ring-glow ${statusKey}`}>
+      <div className={`guardian-icon ${statusKey}`}>
+        {statusKey === 'safe'   && <ShieldCheck size={32} />}
+        {statusKey === 'warn'   && <Activity    size={32} />}
+        {statusKey === 'danger' && <ShieldAlert size={32} />}
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Dashboard ───────────────────────────────────────── */
 const Dashboard = () => {
-  const { 
-    riskScore, 
-    alertStatus, 
+  const {
+    riskScore,
+    alertStatus,
     confirmationCountdown,
     resetSystem,
-    simulateEvent, 
-    simulateSpeechDetection, 
-    triggerPhrases 
+    simulateEvent,
+    simulateSpeechDetection,
+    triggerPhrases,
+    contacts,
   } = useSafety();
 
-  const getRiskStatus = () => {
-    if (riskScore >= 70) return { label: 'EMERGENCY', color: 'var(--risk-emergency)', gradient: 'var(--risk-emergency-gradient)' };
-    if (riskScore >= 40) return { label: 'SUSPICIOUS', color: 'var(--risk-suspicious)', gradient: 'var(--risk-suspicious-gradient)' };
-    return { label: 'SAFE', color: 'var(--risk-safe)', gradient: 'var(--risk-safe-gradient)' };
-  };
-
-  const status = getRiskStatus();
+  const status = getStatus(riskScore);
   const isSafe = riskScore < 40;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      
-      {/* Top Row: Dynamic Risk / Safe State */}
-      <div className="card glass-panel" style={{ textAlign: 'center', position: 'relative', overflow: 'hidden', padding: isSafe ? '3rem 1.5rem' : '1.5rem' }}>
-        <div style={{ position: 'absolute', top: '-50%', left: '-50%', right: '-50%', bottom: '-50%', background: `radial-gradient(circle, ${status.color}22 0%, transparent 70%)`, opacity: isSafe ? 0.5 : 1 }}></div>
-        
-        {isSafe ? (
-          <div className="animate-fade-in" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ 
-              width: 110, height: 110, borderRadius: '50%', 
-              background: status.gradient, 
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 10px 30px var(--risk-safe-transparent), inset 0 2px 5px rgba(255,255,255,0.3)`,
-              marginBottom: '1rem',
-              color: 'white'
-            }}>
-               <ShieldCheck size={56} />
-            </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--risk-safe)', fontFamily: 'Outfit, sans-serif' }}>Protected</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-              Background monitoring is active. <br/> No contextual threats detected.
-            </p>
-          </div>
-        ) : (
-          <div className="animate-fade-in" style={{ position: 'relative', zIndex: 1 }}>
-            <h2 className="card-header" style={{ justifyContent: 'center', marginBottom: '2rem' }}>
-              {alertStatus === 'confirming' ? 'System Countdown' : 'Contextual Risk Score'}
-            </h2>
-            <div className={`score-circle ${alertStatus === 'confirming' ? 'animate-pulse' : ''}`} style={{ background: status.gradient, boxShadow: `0 10px 40px ${status.color}44` }}>
-              <div style={{ background: 'var(--bg-secondary)', width: '100%', height: '100%', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="score-value" style={{ color: status.color }}>
-                  {alertStatus === 'confirming' ? confirmationCountdown : Math.floor(riskScore)}
-                </span>
-                <span className="score-label">{alertStatus === 'confirming' ? 'SECONDS' : '/ 100'}</span>
+    <div className="anim-fade">
+
+      {/* ── Hero Section ── */}
+      <section className="hero-section">
+        {alertStatus === 'confirming' ? (
+          /* Countdown mode */
+          <div style={{ textAlign: 'center' }} className="anim-fade">
+            <div className="countdown-ring-wrap">
+              <svg className="countdown-ring-svg" viewBox="0 0 120 120">
+                <circle className="countdown-track" cx="60" cy="60" r="48" strokeWidth="6" />
+                <circle
+                  className="countdown-fill"
+                  cx="60" cy="60" r="48"
+                  strokeWidth="6"
+                  strokeDasharray={2 * Math.PI * 48}
+                  strokeDashoffset={2 * Math.PI * 48 * (1 - confirmationCountdown / 30)}
+                />
+              </svg>
+              <div className="countdown-inner">
+                <span className="countdown-num">{confirmationCountdown}</span>
+                <span className="countdown-unit">sec</span>
               </div>
             </div>
-            <div className="status-badge glass-pill pulse" style={{ color: status.color, border: `1px solid ${status.color}55`, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', margin: '2rem auto 0 auto' }}>
-              <Activity size={16} /> {status.label}
-            </div>
+            <h1 className="hero-title danger" style={{ fontSize: 24, marginBottom: 8 }}>Confirm Emergency?</h1>
+            <p className="hero-subtitle">Trigger detected. Auto-activating if no response.</p>
           </div>
+        ) : isSafe ? (
+          /* Safe state — guardian ring */
+          <>
+            <GuardianRing statusKey="safe" />
+            <h1 className="hero-title safe">{status.title}</h1>
+            <p className="hero-subtitle">
+              Background monitoring is active.<br />No contextual threats detected.
+            </p>
+            <span className="status-pill safe">{status.label}</span>
+          </>
+        ) : (
+          /* Elevated risk */
+          <>
+            <GuardianRing statusKey={status.key} />
+            <ScoreRing score={riskScore} status={status} />
+            <h1 className="hero-title" style={{ color: status.color, marginTop: 16 }}>{status.title}</h1>
+            <p className="hero-subtitle">Contextual anomalies detected.</p>
+            <span className={`status-pill ${status.key}`}>{status.label}</span>
+          </>
         )}
-      </div>
+      </section>
 
-      {/* Map (Only show if risk is elevated or we want to show active tracking) */}
+      {/* ── Map (elevated risk only) ── */}
       {!isSafe && (
-        <div className="card animate-slide-up">
-          <div className="card-header" style={{ marginBottom: '0.5rem' }}>
-            <h2 className="card-title"><MapPin size={18} /> Safety Route</h2>
-            <span className="scenario-badge" style={{ background: 'var(--risk-suspicious-transparent)', color: 'var(--risk-suspicious)' }}>Elevated Risk</span>
+        <div className="card anim-up">
+          <div className="card-title">
+            <span className="icon-badge"><MapPin size={16} /></span>
+            Safety Route
+            <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: 'var(--warn)',
+              background: 'var(--warn-dim)', padding: '3px 10px', borderRadius: 999,
+              border: '1px solid rgba(245,158,11,0.3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Elevated Risk
+            </span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Location is being monitored closely due to detected context anomalies.</p>
-          <div className="sim-map">
-             <div className="map-zone safe"></div>
-             <div className="map-zone suspicious"></div>
-             <div className="map-zone danger"></div>
-             <div 
-               className="user-dot" 
-               style={{ 
-                 top: riskScore >= 70 ? '30%' : '60%', 
-                 left: riskScore >= 70 ? '20%' : '70%',
-                 background: status.color,
-                 boxShadow: `0 0 0 4px ${status.color}33, 0 0 15px ${status.color}88`
-               }} 
-             />
+          <div className="map-wrap">
+            <div className="map-zone safe" />
+            <div className="map-zone warn" />
+            <div className="map-zone danger" />
+            <div
+              className="map-dot"
+              style={{
+                top:  riskScore >= 70 ? '30%' : '58%',
+                left: riskScore >= 70 ? '22%' : '68%',
+                background: status.stroke,
+                color: status.stroke,
+                boxShadow: `0 0 0 3px rgba(0,0,0,0.6), 0 0 20px ${status.stroke}88`,
+              }}
+            />
+            <div className="map-fade" />
           </div>
         </div>
       )}
 
-      {/* Simulator Tools */}
-      <div className="card">
-        <div className="card-header" style={{ marginBottom: '0.5rem' }}>
-          <h2 className="card-title"><ShieldAlert size={18} /> Simulate Sensor Events</h2>
+      {/* ── Simulator ── */}
+      <p className="section-label anim-up">Simulate Sensor Events</p>
+      <div className="card anim-up-1">
+        <div className="card-title">
+          <span className="icon-badge"><Zap size={16} /></span>
+          Context Signals
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-          Simulates background context gathering (accelerometer, time, GPS).
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem' }} onClick={() => simulateEvent(10)}>Night (+10)</button>
-          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem' }} onClick={() => simulateEvent(20)}>Unsafe Loc (+20)</button>
-          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem', borderColor: 'var(--risk-suspicious)', color: 'var(--risk-suspicious)' }} onClick={() => simulateEvent(30)}>Movement (+30)</button>
-          <button disabled={alertStatus !== 'inactive'} className="btn-outline" style={{ padding: '8px', fontSize: '0.8rem', borderColor: 'var(--risk-emergency)', color: 'var(--risk-emergency)' }} onClick={() => simulateEvent(40)}>Scream (+40)</button>
+        <div className="sim-grid">
+          <button
+            className="sim-btn"
+            disabled={alertStatus !== 'inactive'}
+            onClick={() => simulateEvent(10)}
+          >
+            🌙 Night
+            <span className="delta">+10 risk</span>
+          </button>
+          <button
+            className="sim-btn"
+            disabled={alertStatus !== 'inactive'}
+            onClick={() => simulateEvent(20)}
+          >
+            📍 Unsafe Loc
+            <span className="delta">+20 risk</span>
+          </button>
+          <button
+            className="sim-btn warn-btn"
+            disabled={alertStatus !== 'inactive'}
+            onClick={() => simulateEvent(30)}
+          >
+            🏃 Movement
+            <span className="delta">+30 risk</span>
+          </button>
+          <button
+            className="sim-btn danger-btn"
+            disabled={alertStatus !== 'inactive'}
+            onClick={() => simulateEvent(40)}
+          >
+            😱 Scream
+            <span className="delta">+40 risk</span>
+          </button>
         </div>
+      </div>
 
-        <div className="card-header" style={{ marginBottom: '0.5rem' }}>
-          <h2 className="card-title"><Fingerprint size={18} /> Voice Triggers</h2>
+      {/* ── Voice Triggers ── */}
+      <p className="section-label anim-up-1">Voice Triggers</p>
+      <div className="card anim-up-2">
+        <div className="card-title">
+          <span className="icon-badge"><Fingerprint size={16} /></span>
+          Wakeword Detection
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-          Simulates on-device wakeword detection.
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {triggerPhrases.map((phrase, idx) => (
-            <button 
-              key={idx} 
-              className="btn-primary" 
-              style={{ 
-                background: 'var(--bg-tertiary)', 
-                border: '1px solid rgba(255,255,255,0.1)', 
-                fontWeight: 'normal',
-                fontSize: '0.8rem',
-                padding: '8px 12px',
-                color: 'var(--text-primary)'
-              }}
-              onClick={() => simulateSpeechDetection(phrase)}
+        <div className="chips-wrap">
+          {triggerPhrases.map((phrase, i) => (
+            <button
+              key={i}
+              className="chip"
               disabled={alertStatus !== 'inactive'}
+              onClick={() => simulateSpeechDetection(phrase)}
             >
               "{phrase}"
             </button>
           ))}
         </div>
-
-        {alertStatus !== 'inactive' && (
-          <button 
-            className="btn-outline" 
-            style={{ width: '100%', marginTop: '1.5rem', borderColor: 'var(--risk-emergency)', color: 'var(--risk-emergency)', fontWeight: 'bold' }}
-            onClick={resetSystem}
-          >
-            Emergency Reset / Stop Simulation
-          </button>
-        )}
       </div>
 
-      {/* Emergency Contacts Panel */}
-      <ContactsPanel />
+      {/* Reset */}
+      {alertStatus !== 'inactive' && (
+        <div style={{ padding: '0 16px', marginBottom: 12 }}>
+          <button className="reset-btn" onClick={resetSystem}>
+            <RefreshCw size={16} /> Emergency Reset
+          </button>
+        </div>
+      )}
+
+      {/* ── Contacts ── */}
+      <p className="section-label anim-up-2">Emergency Contacts</p>
+      <ContactsPanel contacts={contacts} />
     </div>
   );
 };
 
-const ContactsPanel = () => {
-   const { contacts } = useSafety();
-   const activeContacts = contacts.filter(c => c.notified).length;
-
-   return (
-     <div className="card">
-       <div className="card-header">
-         <h2 className="card-title"><Phone size={18} /> Emergency Contacts</h2>
-         {activeContacts > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--risk-emergency)', fontWeight: 'bold' }}>{activeContacts} Alerted</span>}
-       </div>
-       <div className="status-list">
-         {contacts.map((c) => (
-           <div key={c.id} className="status-item" style={{ justifyContent: 'space-between', padding: '0.5rem' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-               <div className="glass-pill" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--accent-blue-transparent)', color: 'var(--accent-blue)', fontWeight: 600, fontSize: '0.8rem' }}>
-                 {c.name.charAt(0)}
-               </div>
-               <div>
-                  <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{c.name}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{c.phone}</div>
-               </div>
-             </div>
-             <div>
-               {c.notified ? (
-                 <span className="scenario-badge animate-pulse" style={{ background: 'var(--risk-emergency-transparent)', color: 'var(--risk-emergency)', border: '1px solid var(--risk-emergency)' }}>
-                   SOS Sent
-                 </span>
-               ) : (
-                 <span className="scenario-badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>
-                   Standby
-                 </span>
-               )}
-             </div>
-           </div>
-         ))}
-       </div>
-     </div>
-   );
+/* ── Contacts ────────────────────────────────────────── */
+const ContactsPanel = ({ contacts }) => {
+  const alerted = contacts.filter(c => c.notified).length;
+  return (
+    <div className="card anim-up-3">
+      <div className="card-title">
+        <span className="icon-badge"><Phone size={16} /></span>
+        Contacts
+        {alerted > 0 && (
+          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700,
+            color: 'var(--danger)', background: 'var(--danger-dim)',
+            padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(239,68,68,0.3)',
+            letterSpacing: '0.05em' }}>
+            {alerted} ALERTED
+          </span>
+        )}
+      </div>
+      <div className="contacts-list">
+        {contacts.map((c) => (
+          <div key={c.id} className="contact-row">
+            <div className="contact-avatar">{c.name.charAt(0).toUpperCase()}</div>
+            <div className="contact-info">
+              <div className="contact-name">{c.name}</div>
+              <div className="contact-phone">{c.phone}</div>
+            </div>
+            <span className={`contact-badge ${c.notified ? 'sos' : 'standby'}`}>
+              {c.notified ? 'SOS Sent' : 'Standby'}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;

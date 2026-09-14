@@ -7,93 +7,88 @@ import EmergencyActive from './components/EmergencyActive';
 import { Shield, Settings, AlertTriangle, Home, Mic, Sun, Moon } from 'lucide-react';
 
 function App() {
-    const { alertStatus, isListening, voiceActive, setVoiceActive } = useSafety();
+  const { alertStatus, isListening, voiceActive, setVoiceActive } = useSafety();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState('dark');
 
-  // Apply theme to document root
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+  const toggleTheme = () => setTheme(p => p === 'dark' ? 'light' : 'dark');
+
+  const micClass = alertStatus === 'active'
+    ? 'icon-btn active-danger'
+    : voiceActive ? 'icon-btn active-safe' : 'icon-btn';
 
   return (
-    <div className="app-container">
-      {/* App Header */}
+    <div className="app-shell">
+      {/* ── Header ── */}
       <header className="app-header">
-        <div className="app-title">
-          <Shield style={{ color: 'var(--accent-blue)' }} size={28} />
-          <span>Ai Guardian Angel</span>
+        <div className="app-header-left">
+          <span className="label">AI Safety System</span>
+          <span className="title">Guardian Angel</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button onClick={toggleTheme} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
-            {theme === 'dark' ? <Sun size={22} /> : <Moon size={22} />}
+        <div className="app-header-right">
+          <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          <button 
+          <button
+            className={micClass}
             onClick={() => setVoiceActive(!voiceActive)}
-            className={`status-icon ${alertStatus === 'active' ? 'danger' : (voiceActive ? 'success' : '')}`}
-            style={{ 
-              width: 42, 
-              height: 42, 
-              cursor: 'pointer',
-              color: alertStatus === 'active' ? 'var(--risk-emergency)' : (voiceActive ? 'var(--risk-safe)' : 'var(--text-muted)')
-            }}
+            aria-label="Toggle voice"
           >
-             <Mic 
-               size={20} 
-               style={{ 
-                 animation: (isListening || alertStatus === 'active') ? 'pulse 1.5s infinite' : 'none',
-               }} 
-             />
+            <Mic
+              size={18}
+              style={{ animation: (isListening || alertStatus === 'active') ? 'iconPulse 1.5s infinite' : 'none' }}
+            />
           </button>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="main-content">
+      {/* ── Scrollable Content ── */}
+      <main className="page-scroll">
         {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'config' && <Configuration />}
-        {activeTab === 'settings' && (
-           <div className="card animate-fade-in" style={{ paddingBottom: '3rem' }}>
-             <h2 className="card-header">System Settings</h2>
-             <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>Global monitoring defaults and privacy controls. All processing happens on-device.</p>
-             <Configuration showGlobalsOnly />
-           </div>
+        {activeTab === 'config'    && <Configuration />}
+        {activeTab === 'settings'  && (
+          <div style={{ padding: '8px 0' }}>
+            <p className="section-label">Global Settings</p>
+            <Configuration showGlobalsOnly />
+          </div>
         )}
-        <div style={{ height: '150px', flexShrink: 0 }} /> {/* Spacer to prevent content hiding behind bottom nav */}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* ── Bottom Nav ── */}
       <nav className="bottom-nav">
-        <button 
-          className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+        <button
+          className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
-          <Home size={24} />
+          <span className="nav-dot" />
+          <Home size={22} />
           <span>Monitor</span>
         </button>
-        <button 
-          className={`nav-item ${activeTab === 'config' ? 'active' : ''}`}
+        <button
+          className={`nav-btn ${activeTab === 'config' ? 'active' : ''}`}
           onClick={() => setActiveTab('config')}
         >
-          <AlertTriangle size={24} />
+          <span className="nav-dot" />
+          <AlertTriangle size={22} />
           <span>Scenarios</span>
         </button>
-        <button 
-          className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+        <button
+          className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
-          <Settings size={24} />
+          <span className="nav-dot" />
+          <Settings size={22} />
           <span>Settings</span>
         </button>
       </nav>
 
-      {/* Overlays */}
+      {/* ── Overlays ── */}
       {alertStatus === 'confirming' && <LockScreenAlert />}
-      {alertStatus === 'active' && <EmergencyActive />}
+      {alertStatus === 'active'     && <EmergencyActive />}
     </div>
   );
 }
