@@ -14,9 +14,9 @@ const Dashboard = () => {
   } = useSafety();
 
   const getRiskStatus = () => {
-    if (riskScore >= 70) return { label: 'EMERGENCY', color: 'var(--risk-emergency)' };
-    if (riskScore >= 40) return { label: 'SUSPICIOUS', color: 'var(--risk-suspicious)' };
-    return { label: 'SAFE', color: 'var(--risk-safe)' };
+    if (riskScore >= 70) return { label: 'EMERGENCY', color: 'var(--risk-emergency)', gradient: 'var(--risk-emergency-gradient)' };
+    if (riskScore >= 40) return { label: 'SUSPICIOUS', color: 'var(--risk-suspicious)', gradient: 'var(--risk-suspicious-gradient)' };
+    return { label: 'SAFE', color: 'var(--risk-safe)', gradient: 'var(--risk-safe-gradient)' };
   };
 
   const status = getRiskStatus();
@@ -32,31 +32,34 @@ const Dashboard = () => {
         {isSafe ? (
           <div className="animate-fade-in" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ 
-              width: 100, height: 100, borderRadius: '50%', 
-              background: 'var(--risk-safe-transparent)', 
+              width: 110, height: 110, borderRadius: '50%', 
+              background: status.gradient, 
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 0 30px var(--risk-safe-transparent)`,
-              marginBottom: '1rem'
+              boxShadow: `0 10px 30px var(--risk-safe-transparent), inset 0 2px 5px rgba(255,255,255,0.3)`,
+              marginBottom: '1rem',
+              color: 'white'
             }}>
-               <ShieldCheck size={48} color="var(--risk-safe)" />
+               <ShieldCheck size={56} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--risk-safe)' }}>Protected</h2>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--risk-safe)', fontFamily: 'Outfit, sans-serif' }}>Protected</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               Background monitoring is active. <br/> No contextual threats detected.
             </p>
           </div>
         ) : (
           <div className="animate-fade-in" style={{ position: 'relative', zIndex: 1 }}>
-            <h2 className="card-header" style={{ justifyContent: 'center' }}>
+            <h2 className="card-header" style={{ justifyContent: 'center', marginBottom: '2rem' }}>
               {alertStatus === 'confirming' ? 'System Countdown' : 'Contextual Risk Score'}
             </h2>
-            <div className={`score-circle ${alertStatus === 'confirming' ? 'animate-pulse' : ''}`} style={{ borderColor: status.color, boxShadow: `0 0 30px ${status.color}33`, marginTop: '1rem' }}>
-              <span className="score-value" style={{ color: status.color }}>
-                {alertStatus === 'confirming' ? confirmationCountdown : Math.floor(riskScore)}
-              </span>
-              <span className="score-label">{alertStatus === 'confirming' ? 'SECONDS' : '/ 100'}</span>
+            <div className={`score-circle ${alertStatus === 'confirming' ? 'animate-pulse' : ''}`} style={{ background: status.gradient, boxShadow: `0 10px 40px ${status.color}44` }}>
+              <div style={{ background: 'var(--bg-secondary)', width: '100%', height: '100%', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="score-value" style={{ color: status.color }}>
+                  {alertStatus === 'confirming' ? confirmationCountdown : Math.floor(riskScore)}
+                </span>
+                <span className="score-label">{alertStatus === 'confirming' ? 'SECONDS' : '/ 100'}</span>
+              </div>
             </div>
-            <div className="status-badge glass-pill pulse" style={{ color: status.color, border: `1px solid ${status.color}55`, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', margin: '1.5rem auto 0 auto' }}>
+            <div className="status-badge glass-pill pulse" style={{ color: status.color, border: `1px solid ${status.color}55`, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', margin: '2rem auto 0 auto' }}>
               <Activity size={16} /> {status.label}
             </div>
           </div>

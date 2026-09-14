@@ -36,14 +36,8 @@ function App() {
             onClick={() => setVoiceActive(!voiceActive)}
             className={`status-icon ${alertStatus === 'active' ? 'danger' : (voiceActive ? 'success' : '')}`}
             style={{ 
-              width: 40, 
-              height: 40, 
-              background: voiceActive ? 'var(--risk-safe-transparent)' : 'var(--glass-pill)',
-              border: voiceActive ? '1px solid var(--risk-safe)' : '1px solid var(--glass-border)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: 42, 
+              height: 42, 
               cursor: 'pointer',
               color: alertStatus === 'active' ? 'var(--risk-emergency)' : (voiceActive ? 'var(--risk-safe)' : 'var(--text-muted)')
             }}
