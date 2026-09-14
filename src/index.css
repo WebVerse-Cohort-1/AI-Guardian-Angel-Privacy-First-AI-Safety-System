@@ -114,7 +114,7 @@ body {
 .app-shell {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 385px;
   height: 100%;
   margin: 0 auto;
   background: var(--bg-base);
@@ -138,8 +138,8 @@ body {
   z-index: 0;
 }
 
-/* Full Width Desktop Layout (Edge-to-Edge Clean) */
-@media (min-width: 441px) {
+/* Full Width Desktop Layout (Edge-to-Edge Clean Slim Mobile Ratio) */
+@media (min-width: 386px) {
   body {
     display: flex;
     align-items: stretch;
@@ -311,9 +311,9 @@ body {
 /* Guardian Ring */
 .guardian-ring-wrap {
   position: relative;
-  width: 230px;
-  height: 230px;
-  margin: 0 auto 26px;
+  width: 195px;
+  height: 195px;
+  margin: 0 auto 22px;
   display: flex;
   align-items: center;
   justify-content: center;
