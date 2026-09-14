@@ -1,0 +1,17 @@
+{
+  "name": "AI Guardian Angel — Privacy-First AI Safety System",
+  "short_name": "Guardian Angel",
+  "description": "On-device AI personal safety monitoring, voice wakewords, and emergency response system.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090A16",
+  "theme_color": "#090A16",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

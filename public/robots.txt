@@ -1,0 +1,5 @@
+# Robots.txt for AI Guardian Angel
+User-agent: *
+Allow: /
+
+Sitemap: https://ai-guardian-angel.app/sitemap.xml
