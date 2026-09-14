@@ -4,7 +4,8 @@ import Dashboard from './components/Dashboard';
 import Configuration from './components/Configuration';
 import LockScreenAlert from './components/LockScreenAlert';
 import EmergencyActive from './components/EmergencyActive';
-import { Shield, Settings, AlertTriangle, Home, Mic, Sun, Moon } from 'lucide-react';
+import BlogHub from './components/BlogHub';
+import { Shield, Settings, AlertTriangle, Home, Mic, Sun, Moon, BookOpen } from 'lucide-react';
 
 function App() {
   const { alertStatus, isListening, voiceActive, setVoiceActive } = useSafety();
@@ -50,6 +51,7 @@ function App() {
       <main className="page-scroll">
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'config'    && <Configuration />}
+        {activeTab === 'blogs'     && <BlogHub />}
         {activeTab === 'settings'  && (
           <div style={{ padding: '8px 0' }}>
             <p className="section-label">Global Settings</p>
@@ -65,7 +67,7 @@ function App() {
           onClick={() => setActiveTab('dashboard')}
         >
           <span className="nav-dot" />
-          <Home size={22} />
+          <Home size={20} />
           <span>Monitor</span>
         </button>
         <button
@@ -73,15 +75,23 @@ function App() {
           onClick={() => setActiveTab('config')}
         >
           <span className="nav-dot" />
-          <AlertTriangle size={22} />
+          <AlertTriangle size={20} />
           <span>Scenarios</span>
+        </button>
+        <button
+          className={`nav-btn ${activeTab === 'blogs' ? 'active' : ''}`}
+          onClick={() => setActiveTab('blogs')}
+        >
+          <span className="nav-dot" />
+          <BookOpen size={20} />
+          <span>Blogs</span>
         </button>
         <button
           className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
           <span className="nav-dot" />
-          <Settings size={22} />
+          <Settings size={20} />
           <span>Settings</span>
         </button>
       </nav>
