@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 
 const SafetyContext = createContext();
 
@@ -61,6 +61,53 @@ export const SafetyProvider = ({ children }) => {
 
   const [confirmationSettings, setConfirmationSettings] = useState(30);
 
+  // Screen Wake Lock (Keep screen active so sensors keep running in pocket)
+  const wakeLockRef = useRef(null);
+
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLockRef.current = await navigator.wakeLock.request('screen');
+          console.log('Screen Wake Lock active.');
+        }
+      } catch (err) {
+        console.error('Wake Lock error:', err);
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      if (wakeLockRef.current) {
+        try {
+          await wakeLockRef.current.release();
+          wakeLockRef.current = null;
+          console.log('Screen Wake Lock released.');
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
+
+    if (isMonitoring) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isMonitoring) {
+        requestWakeLock();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      releaseWakeLock();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isMonitoring]);
+
   // Risk Score Decay
   useEffect(() => {
     let interval;
@@ -78,6 +125,44 @@ export const SafetyProvider = ({ children }) => {
       triggerEmergencyProtocol('High Risk Context Detected');
     }
   }, [riskScore, alertStatus]);
+
+  // Sudden Movement Detection
+  useEffect(() => {
+    if (!isMonitoring || alertStatus === 'active') return;
+
+    let lastMotionTime = 0;
+    
+    const handleMotion = (event) => {
+      let accelerationMagnitude = 0;
+      if (event.acceleration && event.acceleration.x !== null) {
+        const { x, y, z } = event.acceleration;
+        accelerationMagnitude = Math.sqrt(x*x + y*y + z*z);
+      } else if (event.accelerationIncludingGravity && event.accelerationIncludingGravity.x !== null) {
+        const { x, y, z } = event.accelerationIncludingGravity;
+        const mag = Math.sqrt(x*x + y*y + z*z);
+        accelerationMagnitude = Math.abs(mag - 9.81);
+      } else {
+        return;
+      }
+      
+      if (accelerationMagnitude > 20) { // Approx 2g, a significant sudden jolt/drop
+        const now = Date.now();
+        if (now - lastMotionTime > 5000) { 
+          lastMotionTime = now;
+          if (alertStatus === 'confirming') {
+            setConfirmationCountdown(0);
+            console.log('Real Sudden movement detected during confirmation! Escalate to active!');
+          } else {
+            setRiskScore(prev => Math.min(prev + 30, 100));
+            console.log('Real Sudden movement detected!', accelerationMagnitude);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('devicemotion', handleMotion);
+    return () => window.removeEventListener('devicemotion', handleMotion);
+  }, [isMonitoring, alertStatus]);
 
   // Confirmation Countdown Timer
   useEffect(() => {
@@ -242,6 +327,23 @@ export const SafetyProvider = ({ children }) => {
       setActiveScenario(null);
   };
 
+  const enableMotionSensors = async () => {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceMotionEvent.requestPermission();
+        if (permission === 'granted') {
+          console.log('Motion sensor permission granted');
+        } else {
+          console.warn('Motion sensor permission denied');
+        }
+      } catch (error) {
+        console.error('Error requesting motion permission:', error);
+      }
+    } else {
+      console.log('DeviceMotionEvent permission not required or supported');
+    }
+  };
+
   // Scenarios CRUD
   const addScenario = () => {
     const newId = Date.now();
@@ -307,7 +409,8 @@ export const SafetyProvider = ({ children }) => {
     isListening,
     voiceActive,
     setVoiceActive,
-    speak
+    speak,
+    enableMotionSensors
   };
 
   return (

@@ -1,8 +1,8 @@
-# 🛡️ AI Guardian Angel — Privacy-First AI Safety System
+# 🛡️ Safeguard — Privacy-First AI Safety System
 
 <div align="center">
 
-![AI Guardian Angel](https://img.shields.io/badge/AI%20Guardian%20Angel-v0.0.1-blue?style=for-the-badge&logo=shield)
+![Safeguard](https://img.shields.io/badge/Safeguard-v0.0.1-blue?style=for-the-badge&logo=shield)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -32,7 +32,7 @@ Built for women's safety — no data ever leaves your device.
 
 ## 🌟 Overview
 
-**AI Guardian Angel** is a privacy-first personal safety web application designed to protect individuals — particularly women — in potentially dangerous situations. The system continuously monitors contextual risk factor signals (movement, location anomalies, time of day), listens for custom voice trigger phrases, and automatically escalates through a multi-stage emergency protocol when a threat is detected.
+**Safeguard** is a privacy-first personal safety web application designed to protect individuals — particularly women — in potentially dangerous situations. The system continuously monitors contextual risk factor signals (movement, location anomalies, time of day), listens for custom voice trigger phrases, and automatically escalates through a multi-stage emergency protocol when a threat is detected.
 
 > All processing happens **100% on-device**. No audio is ever recorded, stored, or transmitted to external servers.
 
@@ -96,7 +96,7 @@ Built for women's safety — no data ever leaves your device.
 ## 📁 Project Structure
 
 ```
-ai-guardian-angel/
+safeguard/
 ├── public/                  # Static assets
 ├── src/
 │   ├── assets/              # Images, icons
@@ -160,7 +160,7 @@ The app will be available at `http://localhost:5173`.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AI Guardian Angel                        │
+│                          Safeguard                          │
 │                                                             │
 │  ┌─────────────┐    ┌──────────────────┐                   │
 │  │ Risk Scoring │    │  Voice Detection │                   │
@@ -218,7 +218,7 @@ The app will be available at `http://localhost:5173`.
 
 ## 🔒 Privacy Philosophy
 
-AI Guardian Angel was built with a **privacy-first** foundation:
+Safeguard was built with a **privacy-first** foundation:
 
 - ✅ **No backend / No server** — Fully client-side application.
 - ✅ **No data storage** — Trigger history is never saved. State resets on page refresh.

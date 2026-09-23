@@ -19,7 +19,8 @@ const Configuration = ({ showGlobalsOnly = false }) => {
      voiceActive,
      setVoiceActive,
      isListening,
-     speak
+     speak,
+     enableMotionSensors
    } = useSafety();
 
    const [newPhrase, setNewPhrase] = useState('');
@@ -60,6 +61,14 @@ const Configuration = ({ showGlobalsOnly = false }) => {
              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                How long the system waits for user response before activating emergency protocol.
              </p>
+             <div style={{ marginTop: '1.5rem' }}>
+               <button onClick={enableMotionSensors} className="btn-outline" style={{ width: '100%', borderColor: 'var(--risk-suspicious)', color: 'var(--text-primary)' }}>
+                 Enable Motion Sensors (Required for iOS)
+               </button>
+               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                 Allow the app to access the accelerometer for sudden movement detection.
+               </p>
+             </div>
            </div>
 
             <div className="form-group" style={{ marginTop: '1.5rem' }}>
@@ -179,7 +188,7 @@ const Configuration = ({ showGlobalsOnly = false }) => {
        {/* Emergency Scenarios */}
        {!showGlobalsOnly && (
          <>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '0', zIndex: 10, background: 'var(--bg-primary)', padding: '0.5rem 0 1rem 0', WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '-1.5rem', zIndex: 10, background: 'var(--bg-primary)', padding: '1.5rem 1.25rem 1rem 1.25rem', margin: '0 -1.25rem', WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
              <div style={{ display: 'flex', flexDirection: 'column' }}>
                <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Active Scenarios</h2>
                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configure specific reactions</span>

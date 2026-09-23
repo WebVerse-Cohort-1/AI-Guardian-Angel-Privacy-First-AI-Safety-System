@@ -26,7 +26,7 @@ function App() {
       <header className="app-header">
         <div className="app-title">
           <Shield style={{ color: 'var(--accent-blue)' }} size={28} />
-          <span>Ai Guardian Angel</span>
+          <span>Safeguard</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button onClick={toggleTheme} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
