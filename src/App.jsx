@@ -4,10 +4,10 @@ import Dashboard from './components/Dashboard';
 import Configuration from './components/Configuration';
 import LockScreenAlert from './components/LockScreenAlert';
 import EmergencyActive from './components/EmergencyActive';
-import { Shield, Settings, AlertTriangle, Home, Mic, Sun, Moon } from 'lucide-react';
+import { Shield, Settings, AlertTriangle, Home, Mic, MicOff, Sun, Moon, Activity } from 'lucide-react';
 
 function App() {
-    const { alertStatus, isListening, voiceActive, setVoiceActive } = useSafety();
+    const { alertStatus, isListening, voiceActive, setVoiceActive, isMonitoring, setIsMonitoring } = useSafety();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState('dark');
 
@@ -31,6 +31,26 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button onClick={toggleTheme} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
             {theme === 'dark' ? <Sun size={22} /> : <Moon size={22} />}
+          </button>
+          
+          <button 
+            onClick={() => setIsMonitoring(!isMonitoring)}
+            className={`status-icon ${alertStatus === 'active' ? 'danger' : (isMonitoring ? 'success' : '')}`}
+            style={{ 
+              width: 40, 
+              height: 40, 
+              background: isMonitoring ? 'var(--risk-safe-transparent)' : 'var(--glass-pill)',
+              border: isMonitoring ? '1px solid var(--risk-safe)' : '1px solid var(--glass-border)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: alertStatus === 'active' ? 'var(--risk-emergency)' : (isMonitoring ? 'var(--risk-safe)' : 'var(--text-muted)')
+            }}
+            title="Toggle Motion Monitoring"
+          >
+             <Activity size={20} />
           </button>
           <button 
             onClick={() => setVoiceActive(!voiceActive)}

@@ -10,6 +10,7 @@ const Dashboard = () => {
     resetSystem,
     simulateEvent, 
     simulateSpeechDetection, 
+    triggerEmergencyProtocol,
     triggerPhrases 
   } = useSafety();
 
@@ -62,6 +63,35 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* SOS Panic Button */}
+      {isSafe && alertStatus === 'inactive' && (
+        <button 
+          onClick={() => triggerEmergencyProtocol("Manual SOS")}
+          className="animate-slide-up"
+          style={{
+            width: '100%',
+            padding: '1.5rem',
+            background: 'linear-gradient(135deg, var(--risk-emergency), #ff0055)',
+            border: 'none',
+            borderRadius: 'var(--radius-lg)',
+            color: 'white',
+            fontSize: '1.5rem',
+            fontWeight: 800,
+            letterSpacing: '2px',
+            boxShadow: '0 10px 25px rgba(255, 68, 68, 0.4)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            textTransform: 'uppercase'
+          }}
+        >
+          <ShieldAlert size={28} />
+          SOS Panic Button
+        </button>
+      )}
 
       {/* Map (Only show if risk is elevated or we want to show active tracking) */}
       {!isSafe && (

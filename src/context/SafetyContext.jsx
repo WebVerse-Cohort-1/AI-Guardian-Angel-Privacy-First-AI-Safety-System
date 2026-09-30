@@ -13,6 +13,8 @@ export const SafetyProvider = ({ children }) => {
   const [activeScenario, setActiveScenario] = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [voiceActive, setVoiceActive] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const isTriggerProcessing = useRef(false);
 
   // Default Scenarios
   const [scenarios, setScenarios] = useState([
@@ -134,27 +136,56 @@ export const SafetyProvider = ({ children }) => {
     
     const handleMotion = (event) => {
       let accelerationMagnitude = 0;
+      let maxSingleAxis = 0;
+      let isFreefall = false;
+      let isSpinning = false;
+
+      // 1. Acceleration Check
       if (event.acceleration && event.acceleration.x !== null) {
         const { x, y, z } = event.acceleration;
         accelerationMagnitude = Math.sqrt(x*x + y*y + z*z);
-      } else if (event.accelerationIncludingGravity && event.accelerationIncludingGravity.x !== null) {
-        const { x, y, z } = event.accelerationIncludingGravity;
-        const mag = Math.sqrt(x*x + y*y + z*z);
-        accelerationMagnitude = Math.abs(mag - 9.81);
-      } else {
-        return;
-      }
+        maxSingleAxis = Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
+      } 
       
-      if (accelerationMagnitude > 20) { // Approx 2g, a significant sudden jolt/drop
+      // Freefall can only be detected via accelerationIncludingGravity
+      if (event.accelerationIncludingGravity && event.accelerationIncludingGravity.x !== null) {
+        const { x, y, z } = event.accelerationIncludingGravity;
+        const magGravity = Math.sqrt(x*x + y*y + z*z);
+        
+        if (magGravity < 2.5) { // Near 0g indicates freefall (dropped or knocked out of hand)
+           isFreefall = true;
+        }
+        
+        // Fallback for magnitude if pure acceleration wasn't provided by the device
+        if (accelerationMagnitude === 0) {
+           accelerationMagnitude = Math.abs(magGravity - 9.81);
+           maxSingleAxis = Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
+        }
+      }
+
+      // 2. Rotation / Tumble Check (Gyroscope)
+      if (event.rotationRate && event.rotationRate.alpha !== null) {
+        const { alpha, beta, gamma } = event.rotationRate;
+        // Rotation > 300 deg/sec indicates being thrown, smacked, or a physical struggle
+        if (Math.abs(alpha) > 300 || Math.abs(beta) > 300 || Math.abs(gamma) > 300) {
+           isSpinning = true;
+        }
+      }
+
+      // 3. Final Evaluation
+      const isSnatch = maxSingleAxis > 15; // 1.5g on a single axis (hard pull/snatch)
+      const isJolt = accelerationMagnitude > 20; // Overall 2g jolt
+
+      if (isJolt || isSnatch || isFreefall || isSpinning) {
         const now = Date.now();
-        if (now - lastMotionTime > 5000) { 
+        if (now - lastMotionTime > 2000) { 
           lastMotionTime = now;
           if (alertStatus === 'confirming') {
             setConfirmationCountdown(0);
-            console.log('Real Sudden movement detected during confirmation! Escalate to active!');
+            console.log('Force detected during confirmation! Escalate to active!');
           } else {
-            setRiskScore(prev => Math.min(prev + 30, 100));
-            console.log('Real Sudden movement detected!', accelerationMagnitude);
+            setRiskScore(prev => Math.min(prev + 35, 100)); // Slightly higher penalty for physical force
+            console.log(`Force detected! Snatch: ${isSnatch}, Jolt: ${isJolt}, Freefall: ${isFreefall}, Spin: ${isSpinning}`);
           }
         }
       }
@@ -180,26 +211,37 @@ export const SafetyProvider = ({ children }) => {
   // Text to Speech Utility
   const speak = (text) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Stop any current speech
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      window.speechSynthesis.speak(utterance);
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel(); // Stop any current speech
+      }
+      
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        
+        setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+
+        window.speechSynthesis.speak(utterance);
+      }, 50);
     }
   };
 
   // Real Voice Recognition Effect
   useEffect(() => {
     let recognition = null;
+    let intentionalStop = false;
 
-    if (voiceActive && isMonitoring && alertStatus === 'inactive') {
+    if (voiceActive && isMonitoring && alertStatus === 'inactive' && !isSpeaking) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       
       if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.continuous = true;
-        recognition.interimResults = false;
+        recognition.interimResults = true;
         recognition.lang = 'en-US';
 
         recognition.onstart = () => {
@@ -208,15 +250,31 @@ export const SafetyProvider = ({ children }) => {
         };
 
         recognition.onresult = (event) => {
-          const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-          console.log('Recognized:', transcript);
+          const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join(' ')
+            .trim().toLowerCase();
           
-          // Check if transcript contains any of our trigger phrases
-          const matchedPhrase = triggerPhrases.find(p => transcript.includes(p.toLowerCase()));
+          // Strip punctuation for cleaner matching
+          const cleanTranscript = transcript.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+          console.log('Recognized:', cleanTranscript);
+          
+          // Check if transcript contains any of our trigger phrases or scenario phrases
+          const allPhrases = Array.from(new Set([
+            ...triggerPhrases,
+            ...scenarios.map(s => s.triggerPhrase)
+          ]));
+          
+          const matchedPhrase = allPhrases.find(p => {
+            if (!p) return false;
+            // Escape phrase and use word boundaries to prevent partial matches (e.g., 'helpful' matching 'help')
+            const escapedPhrase = p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b${escapedPhrase}\\b`);
+            return regex.test(cleanTranscript);
+          });
           
           if (matchedPhrase) {
             simulateSpeechDetection(matchedPhrase);
-            speak(`Starting safety protocol.`);
           }
         };
 
@@ -227,9 +285,11 @@ export const SafetyProvider = ({ children }) => {
 
         recognition.onend = () => {
           setIsListening(false);
-          // Restart if still active
-          if (voiceActive && isMonitoring && alertStatus === 'inactive') {
-            try { recognition.start(); } catch (e) { console.error(e); }
+          // Restart if still active and not unmounted (delay slightly to prevent browser crash loops)
+          if (!intentionalStop && voiceActive && isMonitoring && alertStatus === 'inactive' && !isSpeaking) {
+            setTimeout(() => {
+              try { recognition.start(); } catch (e) { console.error(e); }
+            }, 250);
           }
         };
 
@@ -246,11 +306,12 @@ export const SafetyProvider = ({ children }) => {
     }
 
     return () => {
+      intentionalStop = true;
       if (recognition) {
         recognition.stop();
       }
     };
-  }, [voiceActive, isMonitoring, alertStatus, triggerPhrases]);
+  }, [voiceActive, isMonitoring, alertStatus, triggerPhrases, scenarios, isSpeaking]);
 
   const simulateEvent = (scoreIncrease) => {
     setRiskScore((prev) => {
@@ -260,7 +321,8 @@ export const SafetyProvider = ({ children }) => {
   };
 
   const simulateSpeechDetection = (phrase) => {
-    if (alertStatus !== 'inactive') return;
+    if (alertStatus !== 'inactive' || isTriggerProcessing.current) return;
+    isTriggerProcessing.current = true;
     
     // Find matching scenario explicitly, otherwise see if it's just a general trigger
     const matchedScenario = scenarios.find(
@@ -283,11 +345,12 @@ export const SafetyProvider = ({ children }) => {
 
   const cancelAlert = () => {
     setAlertStatus('inactive');
+    isTriggerProcessing.current = false;
     setConfirmationCountdown(0);
     setDetectedPhrase('');
     setActiveScenario(null);
     setRiskScore(15);
-    speak("Emergency alert has been cancelled. System is now back in monitoring mode.");
+    speak("Alert cancelled.");
   };
 
   const confirmEmergency = () => {
@@ -321,10 +384,12 @@ export const SafetyProvider = ({ children }) => {
   
   const resetSystem = () => {
       setAlertStatus('inactive');
+      isTriggerProcessing.current = false;
       setRiskScore(15);
       setContacts(prev => prev.map(c => ({...c, notified: false})));
       setDetectedPhrase('');
       setActiveScenario(null);
+      speak("System reset.");
   };
 
   const enableMotionSensors = async () => {

@@ -10,11 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/background-runner": "^3.0.0",
+    "@capacitor/core": "^8.5.2",
+    "@picovoice/porcupine-react": "^4.0.0",
+    "@picovoice/web-voice-processor": "^4.0.10",
     "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "@eslint/js": "^9.39.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
