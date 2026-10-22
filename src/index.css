@@ -85,6 +85,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  zoom: 0.92;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-primary);
